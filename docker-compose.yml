@@ -116,7 +116,6 @@ services:
     image: dockerhub/sunbird-rc-certificate-api:${RELEASE_VERSION}
     volumes:
       - ${PWD}/scripts:/scripts
-    entrypoint: ["sh", "/scripts/docker-entrypoint.sh"]
     environment:
       - PORT=8078
     ports:
