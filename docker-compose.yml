@@ -6,9 +6,6 @@ services:
     environment:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-      - "9300:9300"
     healthcheck:
       test: ["CMD", "curl", "-f", "localhost:9200/_cluster/health"]
       interval: 30s
@@ -18,8 +15,6 @@ services:
     image: postgres
     volumes:
       - ./db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_DB=registry
       - POSTGRES_USER=postgres
@@ -59,37 +54,38 @@ services:
       - kafka_bootstrap_address=kafka:9092
       - webhook_enabled=false
       - webhook_url=http://localhost:5001/api/v1/callback
-    ports:
-      - "8081:8081"
     depends_on:
       es:
         condition: service_healthy
       db:
         condition: service_started
   keycloak:
-    image: dockerhub/ndear-keycloak:${RELEASE_VERSION}
+    image: dockerhub/sunbird-rc-keycloak:latest
     volumes:
       - ${PWD}/imports:/opt/jboss/keycloak/imports
     environment:
+      - KEYCLOAK_LOGO=https://svgshare.com/i/hCs.svg
       - DB_VENDOR=postgres
       - DB_ADDR=db
       - DB_PORT=5432
-      - DB_DATABASE=registry
+      - DB_DATABASE=postgres
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - KEYCLOAK_USER=admin
       - KEYCLOAK_PASSWORD=admin
       - KEYCLOAK_IMPORT=/opt/jboss/keycloak/imports/realm-export.json
       - PROXY_ADDRESS_FORWARDING=true
+      - KEYCLOAK_LOGO=https://svgshare.com/i/m5t.svg
+      - KEYCLOAK_PORTAL_TITLE=Sunbird RC account
+      - KEYCLOAK_PORTAL_SUB_TITLE=Create your Registry and Credentialing Platform
+      - SHOW_BANNER=false
+      - SHOW_FOOTER=false
     healthcheck:
       test:
         ["CMD-SHELL", "curl -f http://localhost:9990/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
-    ports:
-      - "8080:8080"
-      - "9990:9990"
     depends_on:
       db:
         condition: service_started
@@ -100,8 +96,6 @@ services:
       - connectionInfo_username=postgres
       - connectionInfo_password=postgres
       - sunbirdrc_url=http://registry:8081
-    ports:
-      - "8082:8082"
     depends_on:
       db:
         condition: service_started
@@ -111,20 +105,12 @@ services:
     image: dockerhub/sunbird-rc-certificate-signer:${RELEASE_VERSION}
     environment:
       - PORT=8079
-    ports:
-      - "8079:8079"
+    volumes:
+      - ./deps:/etc/signer
   certificate-api:
     image: dockerhub/sunbird-rc-certificate-api:${RELEASE_VERSION}
-    volumes:
-      - ${PWD}/scripts:/scripts
     environment:
       - PORT=8078
-    ports:
-      - "8078:8078"
-  verification-ui:
-    image: tejashjl/verification
-    ports:
-      - "6080:80"
   file-storage:
     image: quay.io/minio/minio
     volumes:
@@ -133,9 +119,6 @@ services:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=12345678
     command: server --address 0.0.0.0:9000 --console-address 0.0.0.0:9001 /data
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 30s
@@ -168,3 +151,25 @@ services:
       interval: 30s
       timeout: 10s
       retries: 4
+  public-key-service:
+    image: dockerhub/sunbird-rc-public-key-service:${RELEASE_VERSION}
+    environment:
+      - CONFIG_BASE_PATH=/etc/keys
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "localhost:3300/api/v1/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 4
+    volumes:
+      - ./deps:/etc/keys
+  context-proxy-service:
+    image: dockerhub/sunbird-rc-context-proxy-service:${RELEASE_VERSION}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "localhost:4400/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 4
+  nginx:
+    image: tejashjl/admin
+    ports:
+      - "82:80"
