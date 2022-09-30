@@ -1,0 +1,259 @@
+{
+	"info": {
+		"_postman_id": "1c2b3d8f-7e45-4d67-a0ee-5c1661977110",
+		"name": "g2p",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "generate token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Your test name\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"g2p_token\", jsonData.access_token);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "sandbox-client-1",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "f1e6404a-6829-4e9e-9fc2-d49d9e0037e4",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://sandbox-sbrc.g2pconnect.io/auth/realms/sunbird-rc/protocol/openid-connect/token",
+					"protocol": "https",
+					"host": [
+						"sandbox-sbrc",
+						"g2pconnect",
+						"io"
+					],
+					"path": [
+						"auth",
+						"realms",
+						"sunbird-rc",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create entity",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Your test name\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"beneficiaryOsid\", jsonData.result.Beneficiary.osid);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"connection": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{g2p_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Host",
+						"value": "https://sandbox-sbrc.g2pconnect.io/registry",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n        \"name\": \"Ade Hastuti\",\n        \"date_of_birth\": \"2022-08-01\",\n        \"gender\": \"Female\",\n        \"phone\": \"+62-12-571-0072\",\n        \"account_number\": \"229899429\",\n        \"bank_name\": \"slcb\",\n        \"disability_level\": \"58\",\n        \"program\": \"flood_relief_aug_2022\",\n        \"isEligible\": false\n    }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://sandbox-sbrc.g2pconnect.io/registry/api/v1/Beneficiary",
+					"protocol": "https",
+					"host": [
+						"sandbox-sbrc",
+						"g2pconnect",
+						"io"
+					],
+					"path": [
+						"registry",
+						"api",
+						"v1",
+						"Beneficiary"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get entity",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{g2p_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://sandbox-sbrc.g2pconnect.io/registry/api/v1/Beneficiary/{{beneficiaryOsid}}",
+					"protocol": "https",
+					"host": [
+						"sandbox-sbrc",
+						"g2pconnect",
+						"io"
+					],
+					"path": [
+						"registry",
+						"api",
+						"v1",
+						"Beneficiary",
+						"{{beneficiaryOsid}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get signed entity",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{g2p_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/vc+ld+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://sandbox-sbrc.g2pconnect.io/registry/api/v1/Beneficiary/{{beneficiaryOsid}}",
+					"protocol": "https",
+					"host": [
+						"sandbox-sbrc",
+						"g2pconnect",
+						"io"
+					],
+					"path": [
+						"registry",
+						"api",
+						"v1",
+						"Beneficiary",
+						"{{beneficiaryOsid}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get qr code",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{g2p_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "image/svg+xml"
+					},
+					{
+						"key": "template-key",
+						"value": "qr",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://sandbox-sbrc.g2pconnect.io/registry/api/v1/Beneficiary/{{beneficiaryOsid}}",
+					"protocol": "https",
+					"host": [
+						"sandbox-sbrc",
+						"g2pconnect",
+						"io"
+					],
+					"path": [
+						"registry",
+						"api",
+						"v1",
+						"Beneficiary",
+						"{{beneficiaryOsid}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
